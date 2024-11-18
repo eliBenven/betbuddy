@@ -13,7 +13,7 @@ import Signup from './pages/Signup';
 import AddItem from './pages/AddItem';
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // Updated items state with new data, including expiryDate and expiryTime
   const [items, setItems] = useState([
@@ -62,10 +62,10 @@ function App() {
 
   return (
     <Router>
-      <div className="App font-sans">
-        <header className="bg-gray-800 text-white p-4 flex justify-between items-center">
+      <div className="font-sans App">
+        <header className="flex items-center justify-between p-4 text-white bg-gray-800">
           <Link to="/" className="flex items-center">
-            <img src={'/assets/logo.png'} alt="Bet Buddy Logo" className="h-8 w-8 mr-2 rounded-full" />
+            <img src={'/assets/logo.png'} alt="Bet Buddy Logo" className="w-8 h-8 mr-2 rounded-full" />
             <span className="text-2xl font-bold">Bet Buddy</span>
           </Link>
           <nav>
@@ -102,7 +102,7 @@ function App() {
             )}
           </nav>
         </header>
-        <div className="container mx-auto p-4">
+        <div className="container p-4 mx-auto">
           <Routes>
             <Route
               path="/"
