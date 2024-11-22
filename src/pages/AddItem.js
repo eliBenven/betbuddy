@@ -24,27 +24,21 @@ const AddItem = ({ items, setItems }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post(
-        'http://localhost:5001/api/bets',
-        {
-          title: itemData.title,
-          description: itemData.description,
-          options: itemData.options.split(',').map((opt) => opt.trim()),
-          expiryDate: itemData.expiryDate,
-          expiryTime: itemData.expiryTime,
-          totalWager: parseFloat(itemData.totalWager),
-          image: itemData.image || 'https://via.placeholder.com/300',
-        },
-        {
-          headers: { Authorization: token },
-        }
-      );
-  
+      const response = await axios.post('http://localhost:5001/api/items', {
+        title: itemData.title,
+        description: itemData.description,
+        options: itemData.options.split(',').map((opt) => opt.trim()),
+        expiryDate: itemData.expiryDate,
+        expiryTime: itemData.expiryTime,
+        image: itemData.image || 'https://via.placeholder.com/300',
+      });
+
+      // Update the items state with the newly created item
       setItems([...items, response.data]);
-  
-      // Reset form
+
+      // Clear input fields
       setItemData({
         image: '',
         title: '',
@@ -52,15 +46,14 @@ const AddItem = ({ items, setItems }) => {
         options: '',
         expiryDate: '',
         expiryTime: '',
-        totalWager: '',
       });
-  
+
+      // Redirect to Home page
       navigate('/');
     } catch (error) {
       console.error('Error adding item:', error);
     }
   };
-  
 
   return (
     <div className="max-w-md mx-auto">
@@ -112,18 +105,6 @@ const AddItem = ({ items, setItems }) => {
           />
         </div>
         <div>
-          <label className="block mb-1 font-medium">Total Wager (USD):</label>
-          <input
-            type="number"
-            name="totalWager"
-            value={itemData.totalWager}
-            onChange={handleChange}
-            required
-            className="w-full px-3 py-2 border rounded"
-          />
-        </div>
-
-        <div>
           <label className="block mb-1 font-medium">Event Start Date:</label>
           <input
             type="date"
@@ -157,3 +138,4 @@ const AddItem = ({ items, setItems }) => {
 };
 
 export default AddItem;
+
