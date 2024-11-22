@@ -1,5 +1,4 @@
-// App.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   BrowserRouter as Router,
   Routes,
@@ -11,53 +10,25 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import AddItem from './pages/AddItem';
+import Friends from './pages/Friends';
+import OpenBets from './pages/OpenBets';
+import BetHistory from './pages/BetHistory';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userRole, setUserRole] = useState('');
 
-  // Updated items state with new data, including expiryDate and expiryTime
-  const [items, setItems] = useState([
-    {
-      id: 1,
-      image:
-        'https://artwork.espncdn.com/events/401352195/16x9/large_20210815233919.jpg',
-      title: 'Hawks vs. Knicks Over/Under',
-      date: 'October 15, 2025',
-      time: '12:00 PM',
-      expiryDate: 'October 20, 2025',
-      expiryTime: '7:30 PM ET',
-      text: 'Over/Under: 215.5 points scored',
-      options: ['Over', 'Under'],
-    },
-    {
-      id: 2,
-      image:
-        'https://i.ytimg.com/vi/MDb1MqwhB38/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLBIH0K5gMj6ZYImtbXeLtJ-TdOv7g',
-      title: 'Kirk Cousins TD Passes',
-      date: 'October 16, 2025',
-      time: '3:00 PM',
-      expiryDate: 'October 21, 2025',
-      expiryTime: '8:00 PM ET',
-      text: 'Kirk Cousins over 3.5 Touchdown Passes',
-      options: ['Over', 'Under'],
-    },
-    {
-      id: 3,
-      image:
-        'https://www.cookwithnabeela.com/wp-content/uploads/2024/02/ChickenNuggets.webp',
-      title: '100 Chicken Nuggets Challenge',
-      date: 'October 17, 2025',
-      time: '6:00 PM',
-      expiryDate: 'October 22, 2025',
-      expiryTime: '6:00 PM ET',
-      text: 'Do you think I can eat 100 chicken nuggets in 10 minutes?',
-      options: ['Yes', 'No'],
-    },
-  ]);
+  useEffect(() => {
+    // Check for user role in localStorage
+    const role = localStorage.getItem('role');
+    setUserRole(role || ''); // Default to empty string if no role is found
+  }, [isLoggedIn]);
 
-  // Handle logout function
   const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
     setIsLoggedIn(false);
+    setUserRole('');
   };
 
   return (
@@ -72,10 +43,28 @@ function App() {
             {isLoggedIn ? (
               <>
                 <Link
+                  to="/friends"
+                  className="ml-4 text-white hover:text-gray-300"
+                >
+                  Friends
+                </Link>
+                <Link
+                  to="/open-bets"
+                  className="ml-4 text-white hover:text-gray-300"
+                >
+                  Open Bets
+                </Link>
+                <Link
+                  to="/bet-history"
+                  className="ml-4 text-white hover:text-gray-300"
+                >
+                  Bet History
+                </Link>
+                <Link
                   to="/add-item"
                   className="ml-4 text-white hover:text-gray-300"
                 >
-                  Add Item
+                  New Post
                 </Link>
                 <button
                   onClick={handleLogout}
@@ -106,7 +95,7 @@ function App() {
           <Routes>
             <Route
               path="/"
-              element={<Home isLoggedIn={isLoggedIn} items={items} />}
+              element={<Home isLoggedIn={isLoggedIn} />}
             />
             <Route
               path="/login"
@@ -118,13 +107,19 @@ function App() {
             />
             <Route
               path="/add-item"
-              element={
-                isLoggedIn ? (
-                  <AddItem items={items} setItems={setItems} />
-                ) : (
-                  <Navigate to="/login" replace />
-                )
-              }
+              element={isLoggedIn ? <AddItem /> : <Navigate to="/login" replace />}
+            />
+            <Route
+              path="/friends"
+              element={isLoggedIn ? <Friends /> : <Navigate to="/login" replace />}
+            />
+            <Route
+              path="/open-bets"
+              element={isLoggedIn ? <OpenBets /> : <Navigate to="/login" replace />}
+            />
+            <Route
+              path="/bet-history"
+              element={isLoggedIn ? <BetHistory /> : <Navigate to="/login" replace />}
             />
           </Routes>
         </div>
