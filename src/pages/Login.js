@@ -1,4 +1,3 @@
-// Login.js
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
@@ -8,6 +7,7 @@ const Login = ({ setIsLoggedIn }) => {
     email: '',
     password: '',
   });
+  const [errorMessage, setErrorMessage] = useState(''); // State for error message
 
   const navigate = useNavigate();
 
@@ -29,14 +29,18 @@ const Login = ({ setIsLoggedIn }) => {
       navigate('/');
     } catch (error) {
       console.error('Login failed:', error.response?.data || error.message);
+      setErrorMessage(error.response?.data?.message || 'Login failed. Please try again.'); // Set error message
     }
-  };  
-  
-  
+  };
 
   return (
     <div className="max-w-md mx-auto">
       <h2 className="mb-4 text-2xl font-bold">Login</h2>
+      {errorMessage && ( // Conditionally render error message
+        <div className="mb-4 text-red-500">
+          {errorMessage}
+        </div>
+      )}
       <form onSubmit={handleLogin} className="space-y-4">
         <div>
           <label className="block mb-1 font-medium">Email:</label>
