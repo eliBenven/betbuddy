@@ -87,6 +87,14 @@ const Home = ({ isLoggedIn }) => {
                   </button>
                 ))}
               </div>
+              {userRole === 'admin' && (
+                <button
+                  onClick={() => handleDelete(item._id)}
+                  className="px-4 py-2 mb-8 text-white bg-red-500 rounded hover:bg-red-600"
+                >
+                  Delete
+                </button>
+              )}
               <div className="absolute text-sm text-gray-500 bottom-2 right-2">
                 Expires on{' '}
                 {new Date(item.expiryDate).toLocaleDateString('en-US', {
@@ -96,14 +104,7 @@ const Home = ({ isLoggedIn }) => {
                 })}{' '}
                 at {item.expiryTime}
               </div>
-              {userRole === 'admin' && (
-                <button
-                  onClick={() => handleDelete(item._id)}
-                  className="px-4 py-2 mt-4 text-white bg-red-500 rounded hover:bg-red-600"
-                >
-                  Delete
-                </button>
-              )}
+              
             </div>
           ))}
         </div>

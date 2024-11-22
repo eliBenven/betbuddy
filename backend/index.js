@@ -25,6 +25,7 @@ app.use('/api/friends', require('./routes/friends'));
 app.use('/api/open-bets', require('./routes/openBets'));
 app.use('/api/bet-history', require('./routes/betHistory'));
 app.use('/api/place-bet', require('./routes/placeBet'));
+app.use('/api/bets', require('./routes/bets'));
 
 
 // Start Server
