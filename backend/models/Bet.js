@@ -19,7 +19,22 @@ const BetSchema = new mongoose.Schema({
   ],
   totalWager: { type: Number, required: true }, // Total wager pool
   image: { type: String },
-  result: { type: String }, // Outcome of the bet
+  result: {
+    winner: { type: String }, // Example: "Over"
+    timestamp: { type: Date }, // When the result was declared
+  },
+  status: {
+  type: String, 
+  enum: ['open', 'closed', 'settled'], 
+  default: 'open',
+},
+
+
+  odds: {
+    Over: { type: Number },
+    Under: { type: Number },
+  },
+  
 });
 
 module.exports = mongoose.model('Bet', BetSchema);

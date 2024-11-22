@@ -31,6 +31,8 @@ function App() {
     setUserRole('');
   };
 
+  const [items, setItems] = useState([]);
+
   return (
     <Router>
       <div className="font-sans App">
@@ -107,7 +109,7 @@ function App() {
             />
             <Route
               path="/add-item"
-              element={isLoggedIn ? <AddItem /> : <Navigate to="/login" replace />}
+              element={isLoggedIn ? <AddItem items={items} setItems={setItems} /> : <Navigate to="/login" replace />}
             />
             <Route
               path="/friends"
