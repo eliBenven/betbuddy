@@ -6,7 +6,6 @@ const { authorizeAdmin } = require('../../middleware/auth');
 
 const router = express.Router();
 
-// Place a bet on an item
 router.post('/:itemId/place', authenticate, async (req, res) => {
   try {
     const { choice, amount } = req.body;
@@ -20,49 +19,69 @@ router.post('/:itemId/place', authenticate, async (req, res) => {
       return res.status(400).json({ error: 'Bet on this item has expired' });
     }
 
-    // Find or create a Bet record for the Item
-    let bet = await Bet.findOne({ creator: item._id });
-    if (!bet) {
-      bet = new Bet({
-        title: item.title,
-        description: item.description,
-        options: item.options,
-        expiryDate: item.expiryDate,
-        expiryTime: item.expiryTime,
-        creator: item._id,
-        totalWager: 0,
-        image: item.image,
-        participants: [],
-      });
+    // Create or update the Bet for the chosen option
+    let bet = await Bet.findOne({ creator: item._id, 'participants.user': req.user.id });
+
+    if (bet) {
+      return res.status(400).json({ error: 'You have already placed a bet on this item' });
     }
 
-    // Check if the user has already placed a bet on this choice
-    const alreadyPlaced = bet.participants.find(
-      (p) => p.user.toString() === req.user.id && p.choice === choice
-    );
-    if (alreadyPlaced) {
-      return res.status(400).json({ error: 'You have already placed a bet on this choice' });
-    }
+    // Create a new Bet for this choice
+    bet = new Bet({
+      title: item.title,
+      description: item.description,
+      expiryDate: item.expiryDate,
+      expiryTime: item.expiryTime,
+      creator: item.creator, // User who created the item
+      participants: [
+        {
+          user: req.user.id,
+          choice,
+          amount,
+        },
+      ],
+      totalWager: amount, // Total wager for this bet
+      image: item.image,
+      choice: item.choice
+    });
 
-    // Add the user's bet to the participants
-    bet.participants.push({
-      user: req.user.id,
+    await bet.save();
+
+    res.status(200).json({
+      message: 'Bet placed successfully',
+      itemId: item._id,
       choice,
       amount,
     });
-
-    // Update total wager
-    bet.totalWager += amount;
-
-    // Save the Bet
-    await bet.save();
-
-    res.status(200).json({ message: 'Bet placed successfully', bet });
   } catch (error) {
     console.error('Error placing bet:', error);
     res.status(500).json({ error: 'Internal server error while placing bet' });
   }
 });
+
+
+router.post('/', authenticate, async (req, res) => {
+  try {
+    const { title, description, options, expiryDate, expiryTime, image } = req.body;
+
+    const newItem = new Item({
+      title,
+      description,
+      options,
+      expiryDate,
+      expiryTime,
+      image,
+      creator: req.user.id, // Associate the logged-in user
+    });
+
+    const savedItem = await newItem.save();
+    res.status(201).json(savedItem);
+  } catch (err) {
+    console.error('Error creating item:', err);
+    res.status(400).json({ error: err.message });
+  }
+});
+
 
 // Get item by ID
 router.get('/:id', async (req, res) => {
@@ -94,10 +113,20 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', authenticate, authorizeAdmin, async (req, res) => {
   try {
     const { id } = req.params;
+
+    console.log(`Attempting to delete item with ID: ${id}`);
+
+    // Check if the item exists
     const deletedItem = await Item.findByIdAndDelete(id);
-    if (!deletedItem) return res.status(404).json({ error: 'Item not found' });
+    if (!deletedItem) {
+      console.error(`Item not found with ID: ${id}`);
+      return res.status(404).json({ error: 'Item not found' });
+    }
+
+    console.log(`Item deleted successfully: ${deletedItem}`);
     res.json({ message: 'Item deleted successfully' });
   } catch (error) {
+    console.error('Error deleting item:', error.message);
     res.status(500).json({ error: 'Error deleting item' });
   }
 });
@@ -105,11 +134,14 @@ router.delete('/:id', authenticate, authorizeAdmin, async (req, res) => {
 // Get all items
 router.get('/', async (req, res) => {
   try {
-    const items = await Item.find();
+    const items = await Item.find().populate('creator', 'username email'); // Include username and email
     res.json(items);
-  } catch (error) {
+  } catch (err) {
+    console.error('Error fetching items:', err);
     res.status(500).json({ error: 'Error fetching items' });
   }
 });
+
+
 
 module.exports = router;

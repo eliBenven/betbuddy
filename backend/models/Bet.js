@@ -5,6 +5,7 @@ const BetSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String },
   options: [String], // Example: ['Over', 'Under']
+  choice: { type: String },
   expiryDate: { type: Date },
   expiryTime: { type: String },
   createdDate: { type: Date, default: Date.now },

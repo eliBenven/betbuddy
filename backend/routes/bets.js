@@ -63,4 +63,14 @@ router.post('/:itemId/place', authenticate, async (req, res) => {
   }
 });
 
+// Get all bets placed by the user
+router.get('/', authenticate, async (req, res) => {
+  try {
+    const bets = await Bet.find({ 'participants.user': req.user.id });
+    res.json(bets);
+  } catch (error) {
+    res.status(500).json({ error: 'Error fetching bets' });
+  }
+});
+
 module.exports = router;

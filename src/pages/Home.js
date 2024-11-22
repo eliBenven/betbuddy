@@ -28,17 +28,23 @@ const Home = ({ isLoggedIn }) => {
     fetchUserRole();
   }, []);
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (itemId) => {
+    if (!window.confirm('Are you sure you want to delete this item?')) return;
+  
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5001/api/items/${id}`, {
-        headers: { Authorization: token },
+      await axios.delete(`http://localhost:5001/api/items/${itemId}`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      setItems(items.filter((item) => item._id !== id));
+  
+      alert('Item deleted successfully');
+      setItems((prevItems) => prevItems.filter((item) => item._id !== itemId));
     } catch (error) {
-      console.error('Error deleting item:', error);
+      console.error('Error deleting item:', error.response?.data || error.message);
+      alert(error.response?.data?.error || 'Failed to delete item.');
     }
   };
+  
 
   const handlePlaceBet = async (itemId, choice) => {
     const amount = parseFloat(prompt(`How much do you want to bet on "${choice}"?`));

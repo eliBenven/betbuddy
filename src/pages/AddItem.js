@@ -24,36 +24,38 @@ const AddItem = ({ items, setItems }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     try {
-      const response = await axios.post('http://localhost:5001/api/items', {
-        title: itemData.title,
-        description: itemData.description,
-        options: itemData.options.split(',').map((opt) => opt.trim()),
-        expiryDate: itemData.expiryDate,
-        expiryTime: itemData.expiryTime,
-        image: itemData.image || 'https://via.placeholder.com/300',
-      });
-
-      // Update the items state with the newly created item
+      const token = localStorage.getItem('token');
+      const response = await axios.post(
+        'http://localhost:5001/api/items',
+        {
+          title: itemData.title,
+          description: itemData.description,
+          options: itemData.options,
+          expiryDate: itemData.expiryDate,
+          expiryTime: itemData.expiryTime,
+          image: itemData.image,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+  
+      alert('Bet posted successfully!');
       setItems([...items, response.data]);
-
-      // Clear input fields
       setItemData({
-        image: '',
         title: '',
         description: '',
         options: '',
         expiryDate: '',
         expiryTime: '',
+        image: '',
       });
-
-      // Redirect to Home page
-      navigate('/');
     } catch (error) {
-      console.error('Error adding item:', error);
+      console.error('Error adding item:', error.response?.data || error.message);
+      alert('Failed to post the bet. Please try again.');
     }
   };
+  
 
   return (
     <div className="max-w-md mx-auto">
