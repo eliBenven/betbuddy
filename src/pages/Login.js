@@ -1,6 +1,7 @@
 // Login.js
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import axios from 'axios';
 
 const Login = ({ setIsLoggedIn }) => {
   const [loginData, setLoginData] = useState({
@@ -17,43 +18,51 @@ const Login = ({ setIsLoggedIn }) => {
     });
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // Simulate login logic
-    console.log('Login Data:', loginData);
-    setIsLoggedIn(true);
-    navigate('/');
+    try {
+      const response = await axios.post('http://localhost:5001/auth/login', loginData);
+      const { token, role } = response.data;
+      localStorage.setItem('token', token);
+      localStorage.setItem('role', role);
+      setIsLoggedIn(true);
+      navigate('/');
+    } catch (error) {
+      console.error('Login failed:', error);
+    }
   };
+  
+  
 
   return (
     <div className="max-w-md mx-auto">
-      <h2 className="text-2xl font-bold mb-4">Login</h2>
+      <h2 className="mb-4 text-2xl font-bold">Login</h2>
       <form onSubmit={handleLogin} className="space-y-4">
         <div>
-          <label className="block font-medium mb-1">Email:</label>
+          <label className="block mb-1 font-medium">Email:</label>
           <input
             type="email"
             name="email"
             value={loginData.email}
             onChange={handleChange}
             required
-            className="w-full border rounded px-3 py-2"
+            className="w-full px-3 py-2 border rounded"
           />
         </div>
         <div>
-          <label className="block font-medium mb-1">Password:</label>
+          <label className="block mb-1 font-medium">Password:</label>
           <input
             type="password"
             name="password"
             value={loginData.password}
             onChange={handleChange}
             required
-            className="w-full border rounded px-3 py-2"
+            className="w-full px-3 py-2 border rounded"
           />
         </div>
         <button
           type="submit"
-          className="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          className="w-full px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600"
         >
           Login
         </button>

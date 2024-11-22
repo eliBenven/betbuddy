@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Item = require('../../models/Item');
+const { authenticate, authorizeAdmin } = require('../../middleware/auth');
 
 // Get item by ID
 router.get('/:id', async (req, res) => {
@@ -28,16 +29,15 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// Delete item
-router.delete('/:id', async (req, res) => {
+// Delete Item
+router.delete('/:id', authenticate, authorizeAdmin, async (req, res) => {
   try {
-    const deletedItem = await Item.findByIdAndDelete(req.params.id);
-    if (!deletedItem) {
-      return res.status(404).json({ error: 'Item not found' });
-    }
+    const { id } = req.params;
+    const deletedItem = await Item.findByIdAndDelete(id);
+    if (!deletedItem) return res.status(404).json({ error: 'Item not found' });
     res.json({ message: 'Item deleted successfully' });
-  } catch (err) {
-    res.status(500).json({ error: 'Invalid ID format or internal error' });
+  } catch (error) {
+    res.status(500).json({ error: 'Error deleting item' });
   }
 });
 

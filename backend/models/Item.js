@@ -6,7 +6,8 @@ const ItemSchema = new mongoose.Schema({
   options: [String],
   expiryDate: { type: Date },
   expiryTime: { type: String },
-  createdDate: { type: Date, default: Date.now }
+  createdDate: { type: Date, default: Date.now },
+  image: { type: String },
 });
 
 module.exports = mongoose.model('Item', ItemSchema);
