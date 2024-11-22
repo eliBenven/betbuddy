@@ -28,9 +28,9 @@ const Login = ({ setIsLoggedIn }) => {
       setIsLoggedIn(true);
       navigate('/');
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error('Login failed:', error.response?.data || error.message);
     }
-  };
+  };  
   
   
 

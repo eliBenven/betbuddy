@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const authRoutes = require('./routes/auth');
+const itemsRoutes = require('./routes/items/routes');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -18,13 +19,11 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
   .catch(err => console.log(err));
 
 // Routes
-app.use('/api/items', require('./routes/items/routes'));
-app.use('/api/items', require('./routes/[id]/routes'));
+app.use('/api/items', itemsRoutes)
 app.use('/auth', authRoutes); // Mount auth routes
 app.use('/api/friends', require('./routes/friends'));
 app.use('/api/open-bets', require('./routes/openBets'));
 app.use('/api/bet-history', require('./routes/betHistory'));
-app.use('/api/place-bet', require('./routes/placeBet'));
 app.use('/api/bets', require('./routes/bets'));
 
 

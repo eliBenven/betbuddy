@@ -40,6 +40,32 @@ const Home = ({ isLoggedIn }) => {
     }
   };
 
+  const handlePlaceBet = async (itemId, choice) => {
+    const amount = parseFloat(prompt(`How much do you want to bet on "${choice}"?`));
+    if (!amount || isNaN(amount) || amount <= 0) {
+      alert('Invalid amount. Please enter a positive number.');
+      return;
+    }
+  
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(
+        `http://localhost:5001/api/items/${itemId}/place`,
+        { choice, amount },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+  
+      alert(`Bet placed successfully! You bet $${amount} on "${choice}".`);
+    } catch (error) {
+      console.error('Error placing bet:', error.response?.data || error.message);
+      alert(error.response?.data?.error || 'Failed to place bet.');
+    }
+  };
+  
+  
+  
+  
+
   return (
     <div>
       <h2 className="mb-4 text-2xl font-bold">Welcome to Bet Buddy</h2>
@@ -81,6 +107,7 @@ const Home = ({ isLoggedIn }) => {
                 {item.options.map((option, index) => (
                   <button
                     key={index}
+                    onClick={() => handlePlaceBet(item._id, option)}
                     className="px-3 py-1 text-white bg-blue-500 rounded hover:bg-blue-600"
                   >
                     {option}
