@@ -30,9 +30,12 @@ const authenticate = async (req, res, next) => {
 
 
 const authorizeAdmin = (req, res, next) => {
+  console.log('User role:', req.user.role);
   if (req.user.role !== 'admin') {
-    return res.status(403).json({ error: 'Access denied' });
+    console.log('Access denied. User is not an admin.');
+    return res.status(403).json({ error: 'Access denied. Admins only.' });
   }
+  console.log('User authorized as admin.');
   next();
 };
 

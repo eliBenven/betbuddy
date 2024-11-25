@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const BetSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String },
-  options: [String], // Example: ['Over', 'Under']
+  options: { type: [String], required: true, default: [] }, // Default to empty array
   choice: { type: String },
   expiryDate: { type: Date },
   expiryTime: { type: String },
@@ -18,24 +18,23 @@ const BetSchema = new mongoose.Schema({
       placedAt: { type: Date, default: Date.now },
     },
   ],
-  totalWager: { type: Number, required: true }, // Total wager pool
+  totalWager: { type: Number, required: true },
   image: { type: String },
   result: {
-    winner: { type: String }, // Example: "Over"
-    timestamp: { type: Date }, // When the result was declared
+    winner: { type: String },
+    timestamp: { type: Date },
+    votes: [
+      {
+        user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        action: { type: String, enum: ['veto', 'approve'] },
+      },
+    ],
   },
   status: {
-  type: String, 
-  enum: ['open', 'closed', 'settled'], 
-  default: 'open',
-},
-
-
-  odds: {
-    Over: { type: Number },
-    Under: { type: Number },
+    type: String,
+    enum: ['open', 'settled'],
+    default: 'open',
   },
-  
 });
 
 module.exports = mongoose.model('Bet', BetSchema);

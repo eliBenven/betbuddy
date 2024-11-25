@@ -4,6 +4,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { authenticate, authorizeAdmin } = require('../middleware/auth');
 
 
 const router = express.Router();
@@ -56,5 +57,20 @@ router.post('/login', async (req, res) => {
   }
 });
 
+router.get('/user', authenticate, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id)
+      .select('-password') // Exclude password
+      .populate({
+        path: 'betHistory.item',
+        model: 'Item', // Ensure 'Item' model is used
+      });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json(user);
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 module.exports = router;

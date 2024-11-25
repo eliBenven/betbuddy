@@ -1,133 +1,94 @@
 import React, { useState, useEffect } from 'react';
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Link,
-  Navigate,
-} from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import AddItem from './pages/AddItem';
-import Friends from './pages/Friends';
-import OpenBets from './pages/OpenBets';
-import BetHistory from './pages/BetHistory';
+import MyBets from './pages/MyBets'; // Updated name
+import AdminManagement from './pages/AdminManagement'; // Import admin page
+import axios from 'axios';
 
-function App() {
+const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userRole, setUserRole] = useState('');
+  const [userRole, setUserRole] = useState('user'); // Track role
+  const [items, setItems] = useState([]); // Initialize items here
 
   useEffect(() => {
-    // Check for user role in localStorage
-    const role = localStorage.getItem('role');
-    setUserRole(role || ''); // Default to empty string if no role is found
-  }, [isLoggedIn]);
+    const fetchUserData = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setIsLoggedIn(false);
+      } else {
+        try {
+          const response = await axios.get('http://localhost:5001/auth/user', {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setIsLoggedIn(true);
+          setUserRole(response.data.role);
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        }
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('role');
     setIsLoggedIn(false);
-    setUserRole('');
+    window.location.href = '/login'; // Redirect to login page
   };
-
-  const [items, setItems] = useState([]);
 
   return (
     <Router>
-      <div className="font-sans App">
-        <header className="flex items-center justify-between p-4 text-white bg-gray-800">
-          <Link to="/" className="flex items-center">
-            <img src={'/assets/logo.png'} alt="Bet Buddy Logo" className="w-8 h-8 mr-2 rounded-full" />
-            <span className="text-2xl font-bold">Bet Buddy</span>
-          </Link>
+      <div>
+        <header className="flex items-center justify-between px-4 py-2 text-white bg-gray-900">
+          <div className="flex justify-normal">
+          <img src="assets/logo.png" alt="BetBuddy Logo" className="mx-4" width={40} height={40} />
+            <Link to="/" className="my-auto text-xl font-bold">BetBuddy</Link>
+          </div>
+          
           <nav>
             {isLoggedIn ? (
               <>
-                <Link
-                  to="/friends"
-                  className="ml-4 text-white hover:text-gray-300"
-                >
-                  Friends
-                </Link>
-                <Link
-                  to="/open-bets"
-                  className="ml-4 text-white hover:text-gray-300"
-                >
-                  Open Bets
-                </Link>
-                <Link
-                  to="/bet-history"
-                  className="ml-4 text-white hover:text-gray-300"
-                >
-                  Bet History
-                </Link>
-                <Link
-                  to="/add-item"
-                  className="ml-4 text-white hover:text-gray-300"
-                >
-                  New Post
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="ml-4 text-white hover:text-gray-300"
-                >
-                  Logout
-                </button>
+                <Link to="/" className="ml-4">Home</Link>
+                <Link to="/add-item" className="ml-4">New Bet</Link>
+                <Link to="/my-bets" className="ml-4">My Bets</Link>
+                {userRole === 'admin' && <Link to="/admin" className="ml-4">Admin</Link>}
+                <button onClick={handleLogout} className="ml-4">Logout</button>
               </>
             ) : (
               <>
-                <Link
-                  to="/login"
-                  className="ml-4 text-white hover:text-gray-300"
-                >
-                  Login
-                </Link>
-                <Link
-                  to="/signup"
-                  className="ml-4 text-white hover:text-gray-300"
-                >
-                  Signup
-                </Link>
+                <Link to="/login" className="ml-4">Login</Link>
+                <Link to="/signup" className="ml-4">Signup</Link>
               </>
             )}
           </nav>
         </header>
-        <div className="container p-4 mx-auto">
+        <main className="p-4">
           <Routes>
-            <Route
-              path="/"
-              element={<Home isLoggedIn={isLoggedIn} />}
-            />
-            <Route
-              path="/login"
-              element={<Login setIsLoggedIn={setIsLoggedIn} />}
-            />
-            <Route
-              path="/signup"
-              element={<Signup setIsLoggedIn={setIsLoggedIn} />}
-            />
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
+            <Route path="/signup" element={<Signup setIsLoggedIn={setIsLoggedIn} />} />
             <Route
               path="/add-item"
-              element={isLoggedIn ? <AddItem items={items} setItems={setItems} /> : <Navigate to="/login" replace />}
+              element={isLoggedIn ? <AddItem items={items} setItems={setItems} /> : <Navigate to="/login" />}
             />
             <Route
-              path="/friends"
-              element={isLoggedIn ? <Friends /> : <Navigate to="/login" replace />}
+              path="/my-bets"
+              element={isLoggedIn ? <MyBets /> : <Navigate to="/login" />}
             />
             <Route
-              path="/open-bets"
-              element={isLoggedIn ? <OpenBets /> : <Navigate to="/login" replace />}
-            />
-            <Route
-              path="/bet-history"
-              element={isLoggedIn ? <BetHistory /> : <Navigate to="/login" replace />}
+              path="/admin"
+              element={isLoggedIn && userRole === 'admin' ? <AdminManagement /> : <Navigate to="/login" />}
             />
           </Routes>
-        </div>
+        </main>
       </div>
     </Router>
   );
-}
+};
 
 export default App;
+

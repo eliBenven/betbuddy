@@ -6,8 +6,19 @@ const UserSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role: { type: String, enum: ['admin', 'user'], default: 'user' }, // Admin or Regular User
-  friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  balance: { type: Number, default: 100 }, // Default starting balance
+  betHistory: [
+    {
+      item: { type: mongoose.Schema.Types.ObjectId, ref: 'Item' },
+      amount: { type: Number },
+      choice: { type: String },
+      result: { type: String, enum: ['won', 'lost', 'pending'], default: 'pending' },
+      date: { type: Date, default: Date.now },
+      title: { type: String },
+      description: { type: String },
+    },
+  ],
+  role: { type: String, enum: ['user', 'admin'], default: 'user' },
 });
 
 // Hash password before saving

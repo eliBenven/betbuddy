@@ -20,11 +20,13 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
 
 // Routes
 app.use('/api/items', itemsRoutes)
+app.use('/api/groups', require('./routes/groups'));
 app.use('/auth', authRoutes); // Mount auth routes
 app.use('/api/friends', require('./routes/friends'));
 app.use('/api/open-bets', require('./routes/openBets'));
 app.use('/api/bet-history', require('./routes/betHistory'));
 app.use('/api/bets', require('./routes/bets'));
+
 
 
 // Start Server

@@ -1,151 +1,167 @@
-// Home.js
+// Home.jsx
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { FaPlusCircle } from 'react-icons/fa';
+import Login from './Login';
 
 const Home = ({ isLoggedIn }) => {
   const [items, setItems] = useState([]);
-  const [userRole, setUserRole] = useState('');
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // Fetch items
-    const fetchItems = async () => {
+    const fetchItemsAndUser = async () => {
       try {
-        const response = await axios.get('http://localhost:5001/api/items');
-        setItems(response.data);
+        const token = localStorage.getItem('token');
+
+        // Fetch items
+        const itemsResponse = await axios.get('http://localhost:5001/api/items', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        // Fetch user details
+        const userResponse = await axios.get('http://localhost:5001/auth/user', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        // Log user data for debugging
+        console.log('User data:', userResponse.data);
+
+        // Update states
+        const openItems = itemsResponse.data.filter((item) => item.status !== 'settled');
+        setItems(openItems);
+        setUser(userResponse.data);
       } catch (error) {
-        console.error('Error fetching items:', error);
+        console.error('Error fetching items or user:', error.message);
       }
     };
 
-    // Fetch user role
-    const fetchUserRole = () => {
-      const role = localStorage.getItem('role');
-      setUserRole(role || ''); // Default to an empty role if not logged in
-    };
-
-    fetchItems();
-    fetchUserRole();
+    fetchItemsAndUser();
   }, []);
 
-  const handleDelete = async (itemId) => {
-    if (!window.confirm('Are you sure you want to delete this item?')) return;
-  
-    try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5001/api/items/${itemId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-  
-      alert('Item deleted successfully');
-      setItems((prevItems) => prevItems.filter((item) => item._id !== itemId));
-    } catch (error) {
-      console.error('Error deleting item:', error.response?.data || error.message);
-      alert(error.response?.data?.error || 'Failed to delete item.');
-    }
-  };
-  
+  // Handle loading state
+  if (!user) {
+    return (<div className="landing-page">
+      <div className="container flex-col px-4 py-8 mx-auto">
+        <h1 className="mb-4 text-4xl font-bold text-center">Welcome to BetBuddy</h1>
+        <img src="assets/logo.png" alt="BetBuddy Logo" className="mx-auto" width={150} height={150} />
+        <p className="mt-8 mb-8 text-center text-gray-600">
+          Join now to place bets and win big!
+        </p>
+        <div className="flex justify-center space-x-4">
+          <Link
+            to="/login"
+            className="px-6 py-3 text-white bg-blue-500 rounded hover:bg-blue-600"
+          >
+            Login
+          </Link>
+          <Link
+            to="/signup"
+            className="px-6 py-3 text-white bg-green-500 rounded hover:bg-green-600"
+          >
+            Register
+          </Link>
+        </div>
+      </div>
+    </div>);
+  }
 
   const handlePlaceBet = async (itemId, choice) => {
-    const amount = parseFloat(prompt(`How much do you want to bet on "${choice}"?`));
+    const amount = parseFloat(
+      prompt(`How much do you want to bet on "${choice}"?`)
+    );
     if (!amount || isNaN(amount) || amount <= 0) {
       alert('Invalid amount. Please enter a positive number.');
       return;
     }
   
+    if (user.balance < amount) {
+      alert('Insufficient balance. You cannot bet more than your available balance.');
+      return;
+    }
+  
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post(
+      await axios.post(
         `http://localhost:5001/api/items/${itemId}/place`,
         { choice, amount },
         { headers: { Authorization: `Bearer ${token}` } }
       );
   
       alert(`Bet placed successfully! You bet $${amount} on "${choice}".`);
+  
+      // Fetch the updated user data
+      const userResponse = await axios.get('http://localhost:5001/auth/user', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUser(userResponse.data); // Update the user state with the new data
     } catch (error) {
       console.error('Error placing bet:', error.response?.data || error.message);
       alert(error.response?.data?.error || 'Failed to place bet.');
     }
   };
   
-  
-  
-  
 
   return (
-    <div>
-      <h2 className="mb-4 text-2xl font-bold">Welcome to Bet Buddy</h2>
-      {!isLoggedIn && (
-        <div className="mb-4">
-          <p>
-            Please{' '}
-            <Link to="/login" className="text-blue-500 hover:underline">
-              Login
-            </Link>{' '}
-            or{' '}
-            <Link to="/signup" className="text-blue-500 hover:underline">
-              Signup
-            </Link>{' '}
-            to start placing your bets.
-          </p>
+    <div className="space-y-4">
+      {user && (
+        <div className="flex items-center justify-between p-4 bg-gray-100 rounded shadow">
+          <span className="text-xl font-bold">Welcome, {user.username}</span>
+          <span className="text-lg font-semibold text-green-600">
+            Balance: $
+            {user.balance !== undefined ? user.balance.toFixed(2) : '0.00'}
+          </span>
         </div>
       )}
-      {isLoggedIn ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((item) => (
+      <Link
+        to="/add-item"
+        className="flex items-center justify-center w-12 h-12 text-white bg-blue-500 rounded-full shadow-lg hover:bg-blue-600"
+        title="New Post"
+      >
+        <FaPlusCircle size={24} />
+      </Link>
+      <div className="space-y-4">
+        {items.length === 0 ? (
+          <p className="text-gray-500">No items available. Create a new post!</p>
+        ) : (
+          items.map((item) => (
             <div
               key={item._id}
-              className="relative p-4 transition border rounded-lg shadow hover:shadow-lg"
+              className="p-4 transition bg-white rounded shadow hover:shadow-lg"
             >
-              <img
-                src={item.image || 'https://via.placeholder.com/300'}
-                alt={item.title}
-                className="object-cover w-full h-48 mb-4 rounded-md"
-              />
-              <h3 className="mb-2 text-xl font-semibold">{item.title}</h3>
-              <p className="mb-1 text-gray-600">
-                <strong>Posted on:</strong>{' '}
-                {new Date(item.createdDate).toLocaleDateString()} at{' '}
-                {new Date(item.createdDate).toLocaleTimeString()}
-              </p>
+              <div className="flex items-center mb-2">
+                <img
+                  src={item.image || 'https://via.placeholder.com/150'}
+                  alt={item.title}
+                  className="w-12 h-12 mr-3 rounded-full"
+                />
+                <div>
+                  <h3 className="text-lg font-semibold">{item.title}</h3>
+                  <p className="text-sm text-gray-600">
+                    Posted by: {item.creator?.username || 'Unknown'}
+                  </p>
+                </div>
+              </div>
               <p className="mb-2">{item.description}</p>
-              <div className="flex mb-8 space-x-2">
-                {item.options.map((option, index) => (
+              <div className="flex flex-wrap gap-2">
+                {item.options.map((option) => (
                   <button
-                    key={index}
+                    key={option}
                     onClick={() => handlePlaceBet(item._id, option)}
-                    className="px-3 py-1 text-white bg-blue-500 rounded hover:bg-blue-600"
+                    className="px-3 py-1 text-sm text-white bg-blue-500 rounded hover:bg-blue-600"
                   >
-                    {option}
+                    Bet on {option}
                   </button>
                 ))}
               </div>
-              {userRole === 'admin' && (
-                <button
-                  onClick={() => handleDelete(item._id)}
-                  className="px-4 py-2 mb-8 text-white bg-red-500 rounded hover:bg-red-600"
-                >
-                  Delete
-                </button>
-              )}
-              <div className="absolute text-sm text-gray-500 bottom-2 right-2">
-                Expires on{' '}
-                {new Date(item.expiryDate).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}{' '}
-                at {item.expiryTime}
-              </div>
-              
+              <p className="mt-2 text-sm text-gray-500">
+                Expires on {new Date(item.expiryDate).toLocaleDateString()} at{' '}
+                {item.expiryTime}
+              </p>
             </div>
-          ))}
-        </div>
-      ) : (
-        <div className="mt-8 text-center">
-          <p className="text-gray-600">Please log in to see available bets.</p>
-        </div>
-      )}
+          ))
+        )}
+      </div>
     </div>
   );
 };

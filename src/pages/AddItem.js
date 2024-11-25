@@ -1,9 +1,8 @@
-// AddItem.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-const AddItem = ({ items, setItems }) => {
+const AddItem = ({ items = [], setItems }) => {
   const [itemData, setItemData] = useState({
     image: '',
     title: '',
@@ -24,24 +23,28 @@ const AddItem = ({ items, setItems }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(
         'http://localhost:5001/api/items',
         {
-          title: itemData.title,
-          description: itemData.description,
-          options: itemData.options,
-          expiryDate: itemData.expiryDate,
-          expiryTime: itemData.expiryTime,
-          image: itemData.image,
+          ...itemData,
+          options: itemData.options.split(',').map((opt) => opt.trim()), // Format options
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-  
+
       alert('Bet posted successfully!');
-      setItems([...items, response.data]);
+
+      // Ensure items is an array before updating
+      if (Array.isArray(items)) {
+        setItems([...items, response.data]);
+      } else {
+        console.error('Items is not an array');
+        setItems([response.data]); // Reset with the new item
+      }
+
       setItemData({
         title: '',
         description: '',
@@ -50,12 +53,12 @@ const AddItem = ({ items, setItems }) => {
         expiryTime: '',
         image: '',
       });
+      navigate("/")
     } catch (error) {
       console.error('Error adding item:', error.response?.data || error.message);
       alert('Failed to post the bet. Please try again.');
     }
   };
-  
 
   return (
     <div className="max-w-md mx-auto">
@@ -93,9 +96,7 @@ const AddItem = ({ items, setItems }) => {
           ></textarea>
         </div>
         <div>
-          <label className="block mb-1 font-medium">
-            Options (separated by commas):
-          </label>
+          <label className="block mb-1 font-medium">Options (separated by commas):</label>
           <input
             type="text"
             name="options"
@@ -140,4 +141,3 @@ const AddItem = ({ items, setItems }) => {
 };
 
 export default AddItem;
-
