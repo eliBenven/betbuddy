@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 
-const Login = ({ setIsLoggedIn }) => {
+const Login = ({ setIsLoggedIn, setUserRole }) => {
   const [loginData, setLoginData] = useState({
     email: '',
     password: '',
@@ -26,6 +26,7 @@ const Login = ({ setIsLoggedIn }) => {
       localStorage.setItem('token', token);
       localStorage.setItem('role', role);
       setIsLoggedIn(true);
+      setUserRole(role);
       navigate('/');
     } catch (error) {
       console.error('Login failed:', error.response?.data || error.message);

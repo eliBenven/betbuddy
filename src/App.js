@@ -69,7 +69,7 @@ const App = () => {
         <main className="p-4">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
+            <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} setUserRole={setUserRole} />} />
             <Route path="/signup" element={<Signup setIsLoggedIn={setIsLoggedIn} />} />
             <Route
               path="/add-item"
