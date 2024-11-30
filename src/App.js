@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-ro
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
-import AddItem from './pages/AddItem';
+import AddItem from './components/AddItem';
 import MyBets from './pages/MyBets'; // Updated name
 import AdminManagement from './pages/AdminManagement'; // Import admin page
 import axios from 'axios';
